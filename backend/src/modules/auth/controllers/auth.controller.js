@@ -5,13 +5,15 @@ import {
   adminRegisterService,
   adminLoginService,
   userGetMeService,
-  adminGetMeService
+  adminGetMeService,
+  logoutService
 } from "../services/auth.service.js";
 import jwt from "jsonwebtoken";
 import { config } from "../../../configs/env.config.js";
 import Session from "../models/Session.model.js";
 import crypto from "crypto";
 import { asyncHandler } from "../../../utils/asyncHandler.util.js";
+
 
 
 //user register
@@ -188,3 +190,23 @@ export const adminGetMe = asyncHandler(async(req,res)=>{
         user:admin
     })
 })
+
+// logout 
+
+export const logout = asyncHandler(async(req,res)=>{
+  const refreshToken = req.cookies?.refreshToken
+  const accessToken = req.headers.authorization?.split(" ")[1]
+
+  const token = await logoutService({refreshToken,accessToken})
+
+  res.clearCookie("refreshToken",{
+    httpOnly:true,
+    secure:false,
+    sameSite:"strict"
+  })
+
+  return res.status(200).json({
+    success:true,
+    message:"Logout successfully!"
+  })
+}) 

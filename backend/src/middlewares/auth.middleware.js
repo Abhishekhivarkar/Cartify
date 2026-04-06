@@ -4,6 +4,8 @@ import AdminModel from "../modules/auth/models/Admin.model.js"
  import {ROLE} from "../configs/role.config.js"
 import jwt from "jsonwebtoken"
 import UserModel from "../modules/auth/models/User.model.js"
+import BlackListTokenModel from "../modules/auth/models/BlackListToken.model.js"
+import { AppError } from "../utils/appError.util.js"
  
 export const authMiddleware =async (req,res,next) =>{
  try{
@@ -15,7 +17,16 @@ export const authMiddleware =async (req,res,next) =>{
     message:"Token not found"
    })
   }
-  
+  const blackListToken = await BlackListTokenModel.findOne({
+    token
+  })
+  if(blackListToken){
+    return res.status(403).json({
+      success:false,
+      message:"Invalid token please login"
+    })
+  }
+
   const decoded = jwt.verify(token,config.JWT_SECRET)
   
   let account;

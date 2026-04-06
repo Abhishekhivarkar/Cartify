@@ -1,6 +1,7 @@
 import UserModel from "../models/User.model.js"
 import AdminModel from "../models/Admin.model.js"
 import SessionModel from "../models/Session.model.js"
+import BlackListTokenModel from "../models/BlackListToken.model.js"
 //find user by email 
 export const findUserByEmail = async ({email}) =>{
  return await UserModel.findOne({email})
@@ -45,4 +46,16 @@ export const findUserById = async(userId) =>{
 
 export const findAdminById = async(userId) =>{
     return await AdminModel.findById(userId)
+}
+
+// create black list token
+
+export const createBlackListToken = async ({accessToken}) =>{
+    return await BlackListTokenModel.create({token:accessToken})
+}
+
+// find session by session id
+
+export const findSessionBySessionId = async (accessToken) =>{
+    return await SessionModel.findById(accessToken)
 }

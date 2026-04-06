@@ -1,4 +1,4 @@
-import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin,findAdminForLogin,findUserById, findAdminById} from "../repositories/auth.repository.js"
+import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin,findAdminForLogin,findUserById, findAdminById, createBlackListToken,findSessionBySessionId} from "../repositories/auth.repository.js"
 import {config} from "../../../configs/env.config.js"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
@@ -123,3 +123,30 @@ export const adminGetMeService = async (userId) =>{
 
     return user
 }
+
+export const logoutService = async({refreshToken,accessToken}) =>{
+  if(!refreshToken){
+    throw new AppError("Refresh token not found",404)
+  }
+
+  if(!accessToken){
+    throw new AppError("Access token not found",404)
+  }
+
+  const decoded = jwt.verify(accessToken,config.JWT_SECRET)
+  const session = await findSessionBySessionId(decoded.sessionId)
+
+  if(!session){
+    throw new AppError("Session not found")
+  }
+
+  session.isRevoked = true
+  await session.save()
+
+  const blackListToken = await createBlackListToken({accessToken})
+  return true
+}
+
+
+
+
