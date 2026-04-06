@@ -1,8 +1,9 @@
-import {config} from "./configs/env.config.js"
-import UserModel from "./modules/auth/models/User.model.js"
-import AdminModel from "./modules/auth/models/Admin.model.js"
+import {config} from "../configs/env.config.js"
+
+import AdminModel from "../modules/auth/models/Admin.model.js"
  import {ROLE} from "../configs/role.config.js"
 import jwt from "jsonwebtoken"
+import UserModel from "../modules/auth/models/User.model.js"
  
 export const authMiddleware =async (req,res,next) =>{
  try{

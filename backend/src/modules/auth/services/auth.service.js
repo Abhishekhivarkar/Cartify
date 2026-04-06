@@ -1,87 +1,92 @@
-import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin} from "../repositories/auth.repository.js"
+import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin,findAdminForLogin,findUserById, findAdminById} from "../repositories/auth.repository.js"
 import {config} from "../../../configs/env.config.js"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
+import { AppError } from "../../../utils/appError.util.js"
 
 
-export const userRegisterService =async(data)=>{
- try{
-  const existingUser =await findUserByEmail(data.email)
+
+export const userRegisterService = async (data)=>{
+  
+  const existingUser = await findUserByEmail(data.email)
   
   if(existingUser){
-   const err = new Error("This email already in use")
-   err.statusCode = 409
-   throw err
+   throw new AppError("This email already in use",409)
   }
   
   const newUser = await createUser(data)
   
   return newUser
- }catch(err){
-  throw err
- }
 }
 
-export const adminRegisterService =async(data)=>{
- try{
-  const existingUser =await findAdminByEmail(data.email)
+
+
+export const adminRegisterService = async (data)=>{
+  
+  const existingUser = await findAdminByEmail(data.email)
   
   if(existingUser){
-   const err = new Error("This email already in use")
-   err.statusCode = 409
-   throw err
+   throw new AppError("This email already in use",409)
   }
   
   const newUser = await createAdmin(data)
   
   return newUser
- }catch(err){
-  throw err
- }
 }
 
+
+
 export const userLoginService = async (email,password) =>{
- try{
+
   const user = await findUserForLogin({email})
   
   if(!user){
-   const err = new Error("Email is not registered")
-   err.statusCode = 404
-   throw err
+   throw new AppError("Email is not registered",404)
   }
   
   const compare = await user.comparePassword(password)
   
   if(!compare){
-   const err = new Error("Incorrect password")
-   err.statusCode = 403
-   throw err
+   throw new AppError("Incorrect password",403)
   }
   
   return user
- }catch(err){
-  throw err
- }
 }
 
 
+
+export const adminLoginService = async (email,password) =>{
+
+  const admin = await findAdminForLogin({email})
+  
+  if(!admin){
+   throw new AppError("Email is not registered",404)
+  }
+  
+  const compare = await admin.comparePassword(password)
+  
+  if(!compare){
+   throw new AppError("Incorrect password",403)
+  }
+  
+  return admin
+}
+
+
+
 export const refreshTokenService = async (refreshToken) =>{
- try{
+
   if(!refreshToken){
-   const err = new Error("refresh token not found")
-   err.statusCode = 404
-   throw err
+   throw new AppError("refresh token not found",404)
   }
   
   const decoded = jwt.verify(refreshToken,config.REFRESH_TOKEN_SECRET)
   const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex")
  
-  const session= await findSessionById({refreshTokenHash:refreshTokenHash})
+  const session = await findSessionById({refreshTokenHash:refreshTokenHash})
   
   if(!session){
-   const err = new Error("Session not found")
-   err.statusCode = 404
-   throw err
+   throw new AppError("Session not found",404)
   }
  
   return{
@@ -89,7 +94,32 @@ export const refreshTokenService = async (refreshToken) =>{
    userRole:decoded.role,
    session
   }
- }catch(err){
-  throw err
- }
+}
+
+export const userGetMeService = async (userId) =>{
+    if(!userId){
+        throw new AppError("Invalid user id",403)
+    }
+
+    const user = await findUserById(userId)
+
+    if(!user){
+        throw new AppError("User not found",404)
+    }
+
+    return user
+}
+
+export const adminGetMeService = async (userId) =>{
+    if(!userId){
+        throw new AppError("Invalid user id",403)
+    }
+
+    const user = await findAdminById(userId)
+
+    if(!user){
+        throw new AppError("User not found",404)
+    }
+
+    return user
 }

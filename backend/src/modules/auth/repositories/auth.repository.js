@@ -26,7 +26,23 @@ export const findUserForLogin = async ({email}) =>{
  return await UserModel.findOne({email}).select("+password")
 }
 
+// find admin for login
+export const findAdminForLogin = async({email}) =>{
+    return await AdminModel.findOne({email}).select("+password")
+}
 //find session by id
 export const findSessionById = async ({refreshTokenHash}) =>{
  return await SessionModel.findOne({refreshTokenHash,isRevoked:false})
+}
+
+//find user by id
+
+export const findUserById = async(userId) =>{
+    return await UserModel.findById(userId)
+}
+
+//find admin by id
+
+export const findAdminById = async(userId) =>{
+    return await AdminModel.findById(userId)
 }

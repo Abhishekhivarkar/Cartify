@@ -1,8 +1,11 @@
 import dotenv from "dotenv"
+import { cleanEnv, str, port, url } from "envalid"
+
 dotenv.config()
-export const config = {
- PORT:process.env.PORT,
- MONGO_URI: process.env.MONGO_URI,
- JWT_SECRET: process.env.JWT_SECRET,
- REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET
-}
+
+export const config = cleanEnv(process.env, {
+  PORT: port(),
+  MONGO_URI: url(),
+  JWT_SECRET: str(),
+  REFRESH_TOKEN_SECRET: str()
+})
