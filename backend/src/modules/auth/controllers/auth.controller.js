@@ -6,15 +6,16 @@ import {
   adminLoginService,
   userGetMeService,
   adminGetMeService,
-  logoutService
+  logoutService,
+  forgotPasswordService,
+  confirmOTPService
 } from "../services/auth.service.js";
 import jwt from "jsonwebtoken";
 import { config } from "../../../configs/env.config.js";
 import Session from "../models/Session.model.js";
 import crypto from "crypto";
 import { asyncHandler } from "../../../utils/asyncHandler.util.js";
-
-
+import { sendForgotPasswordOTP } from "../../../services/mail.service.js";
 
 //user register
 export const userRegister = asyncHandler(async (req, res) => {
@@ -210,3 +211,31 @@ export const logout = asyncHandler(async(req,res)=>{
     message:"Logout successfully!"
   })
 }) 
+
+
+export const forgetPassword = asyncHandler(async(req,res)=>{
+  const {email} = req.body
+  const {user,otp} = await forgotPasswordService({email})
+  
+  await sendForgotPasswordOTP({
+    email:user.email,
+    otp
+  })
+
+  return res.status(200).json({
+    sucess:true,
+    message:"OTP sent successfully"
+  })
+})
+
+
+export const confirmOTP = asyncHandler(async(req,res)=>{
+  const {otp} = req.body
+
+  const check = await confirmOTPService({otp})
+
+  return res.status(200).json({
+    success:true,
+    message:"OTP confirmed successfully"
+  })
+})

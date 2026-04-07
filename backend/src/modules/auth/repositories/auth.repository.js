@@ -56,6 +56,33 @@ export const createBlackListToken = async ({accessToken}) =>{
 
 // find session by session id
 
-export const findSessionBySessionId = async (accessToken) =>{
-    return await SessionModel.findById(accessToken)
+export const findSessionBySessionId = async (sessionId) =>{
+    return await SessionModel.findById(sessionId)
+}
+
+
+// find user by email
+
+export const findUserAndAdminByEmail= async ({email}) =>{
+   let user = await UserModel.findOne({email})
+   if(!user){
+     user = await AdminModel.findOne({email}) 
+   }
+   return user
+}
+
+// find user by hash otp
+
+export const findUserByhashOTP= async ({hashOTP}) =>{
+   let user = await UserModel.findOne({
+    passwordResetOTP:hashOTP,
+    passwordResetOTPExpires:{$gt:Date.now()}
+   })
+   if(!user){
+     user = await AdminModel.findOne({
+        passwordResetOTP:hashOTP,
+        passwordResetOTPExpires:{$gt:Date.now()}
+    }) 
+   }
+   return user
 }

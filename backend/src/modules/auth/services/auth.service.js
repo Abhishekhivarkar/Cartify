@@ -1,8 +1,9 @@
-import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin,findAdminForLogin,findUserById, findAdminById, createBlackListToken,findSessionBySessionId} from "../repositories/auth.repository.js"
+import {findUserByEmail,findAdminByEmail,createUser,findUserForLogin,findSessionById,createAdmin,findAdminForLogin,findUserById, findAdminById, createBlackListToken,findSessionBySessionId, findUserAndAdminByEmail, findUserByhashOTP} from "../repositories/auth.repository.js"
 import {config} from "../../../configs/env.config.js"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import { AppError } from "../../../utils/appError.util.js"
+import { generateOTP } from "../../../utils/generateOTP.util.js"
 
 
 
@@ -137,7 +138,7 @@ export const logoutService = async({refreshToken,accessToken}) =>{
   const session = await findSessionBySessionId(decoded.sessionId)
 
   if(!session){
-    throw new AppError("Session not found")
+    throw new AppError("Session not found",404)
   }
 
   session.isRevoked = true
@@ -147,6 +148,38 @@ export const logoutService = async({refreshToken,accessToken}) =>{
   return true
 }
 
+export const forgotPasswordService = async ({email}) =>{
+  const user = await findUserAndAdminByEmail({email})
+
+  if(!user){
+    throw new AppError("User not found",404)
+  }
+
+  let otp = generateOTP()
+
+  const hashOTP = crypto.createHash("sha256").update(otp.toString()).digest("hex")
+
+  user.passwordResetOTP = hashOTP
+  user.passwordResetOTPExpires = Date.now() + 10 * 60 * 1000
+
+  await user.save()
+  return {
+    user,otp
+  }
+}
 
 
+export const confirmOTPService = async({otp}) =>{
+  const hashOTP = crypto.createHash("sha256").update(otp.toString()).digest("hex")
 
+  const user = await findUserByhashOTP({hashOTP})
+
+  if(!user){
+    throw new AppError("Incorrect or expired OTP",403)
+  }
+  user.passwordResetOTP = undefined
+  user.passwordResetOTPExpires = undefined
+
+  await user.save()
+  return true
+}

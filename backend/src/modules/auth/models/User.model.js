@@ -74,7 +74,9 @@ const userSchema = mongoose.Schema({
   required:[true,"Role is required"],
   enum:ROLES,
   default:ROLE.USER
- }
+ },
+ passwordResetOTP:String,
+ passwordResetOTPExpires:Date
 },{timestamps:true})
 
 userSchema.pre("save",async function(){

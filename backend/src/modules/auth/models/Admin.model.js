@@ -74,7 +74,9 @@ const adminSchema = mongoose.Schema({
   required:[true,"Role is required"],
   enum:ROLES,
   default:ROLE.ADMIN
- }
+ },
+ passwordResetOTP:String,
+ passwordResetOTPExpires:Date
 },{timestamps:true})
 
 adminSchema.pre("save",async function(){
