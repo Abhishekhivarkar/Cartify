@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-
+import slugify from "slugify"
 const variantSchema = new mongoose.Schema({
     product:{
         type:mongoose.Schema.Types.ObjectId,
@@ -33,4 +33,4 @@ variantSchema.pre("save",function(next){
     next()
 })
 
-export default mongoose.model("productVariants",variantSchema)
+export default mongoose.model("productVariant",variantSchema)

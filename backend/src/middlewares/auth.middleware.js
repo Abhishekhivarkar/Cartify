@@ -49,9 +49,24 @@ export const authMiddleware =async (req,res,next) =>{
   next()
  }catch(err){
   console.log("AUTH MIDDLEWARE ERROR : ",err)
- return res.status(500).json({
-   success:false,
-   message:"Auth middleware failed"
+
+  if(err.name === "TokenExpiredError"){
+    return res.status(401).json({
+      success:false,
+      message:"Token expired, please login again"
+    })
+  }
+
+  if(err.name === "JsonWebTokenError"){
+    return res.status(401).json({
+      success:false,
+      message:"Invalid token"
+    })
+  }
+
+  return res.status(500).json({
+    success:false,
+    message:"Auth middleware failed"
   })
- }
+}
 }

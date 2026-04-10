@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-
+import slugify from "slugify"
 const productSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema({
         type:String
     },
     attributes:{
-        type:map,
+        type:Map,
         of:String
     },
     ratingsAverage:{
@@ -52,4 +52,4 @@ productSchema.pre("save",function(next){
     next()
 })
 
-export default mongoose.model("Products",productSchema)
+export default mongoose.model("Product",productSchema)
