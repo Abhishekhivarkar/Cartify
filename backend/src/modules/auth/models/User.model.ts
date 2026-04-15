@@ -1,13 +1,40 @@
-import mongoose from "mongoose"
-import {Countries} from "../../../enums/country.enum.js"
+import mongoose,{Model,Document} from "mongoose"
+import {Countries,Country} from "../../../enums/country.enum.js"
 import {ROLE,ROLES} from "../../../configs/role.config.js"
 import bcryptjs from "bcryptjs"
-const addressSchema =new mongoose.Schema({
+
+
+
+export interface IAddress{
+    country:string,
+    state:string,
+    city:string,
+    postalCode:number,
+    landMark:string,
+    address:string
+}
+
+
+export interface IUser extends Document{
+    firstName:string,
+    lastName:string,
+    email:string,
+    password:string,
+    phoneNumber:string,
+    address:IAddress[],
+    role:string,
+    passwordResetOTP?:string,
+    passwordResetOTPExpires?:Date,
+    comparePassword(enteredPassword:string): Promise<boolean>
+}
+
+
+const addressSchema =new mongoose.Schema<IAddress>({
  country:{
   type:String,
   required:[true,"Country is required"],
   enum:Countries,
-  default:Countries.India
+  default:Country.India
  },
  state:{
   type:String,
@@ -21,8 +48,7 @@ const addressSchema =new mongoose.Schema({
  },
  postalCode:{
   type:Number,
-  required:[true,"Postel code is required"],
-  trim:true
+  required:[true,"Postel code is required"]
  },
  landMark:{
   type:String,
@@ -37,7 +63,7 @@ const addressSchema =new mongoose.Schema({
  }
 })
 
-const userSchema = mongoose.Schema({
+const userSchema =new mongoose.Schema<IUser>({
  firstName:{
   required:[true,"First name is required"],
   type:String,
@@ -79,7 +105,7 @@ const userSchema = mongoose.Schema({
  passwordResetOTPExpires:Date
 },{timestamps:true})
 
-userSchema.pre("save",async function(){
+userSchema.pre<IUser>("save",async function(){
  if(!this.isModified("password")){
   return
  }
@@ -90,8 +116,10 @@ userSchema.pre("save",async function(){
  return 
 })
 
-userSchema.methods.comparePassword =async function(enteredPassword){
+userSchema.methods.comparePassword =async function(enteredPassword:string):Promise<boolean>{
  return await bcryptjs.compare(enteredPassword,this.password)
 }
 
-export default mongoose.model("User",userSchema)
+const User:Model<IUser> =mongoose.model<IUser>("User",userSchema) 
+
+export default User

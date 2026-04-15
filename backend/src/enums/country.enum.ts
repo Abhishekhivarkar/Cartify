@@ -192,6 +192,8 @@ export const Country = {
   Yemen: "Yemen",
   Zambia: "Zambia",
   Zimbabwe: "Zimbabwe"
-};
+}as const;
 
-export const Countries= Object.values(Country)
+export type CountryType = typeof Country[keyof typeof Country]
+
+export const Countries:CountryType[]= Object.values(Country)

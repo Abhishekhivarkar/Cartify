@@ -16,31 +16,75 @@ import Session from "../models/Session.model.js";
 import crypto from "crypto";
 import { asyncHandler } from "../../../utils/asyncHandler.util.js";
 import { sendForgotPasswordOTP } from "../../../services/mail.service.js";
-
+import express,{Request,Response} from "express"
+import type { IAddress } from "../models/User.model.js";
 //user register
-export const userRegister = asyncHandler(async (req, res) => {
+interface UserRegisterReqBodyType{
+   firstName:string,
+      lastName:string,
+      email:string,
+      password:string,
+      phoneNumber:string,
+      address:IAddress[],
+    
+}
+
+interface UserRegisterResBodyType{
+  success:boolean,
+  message:string,
+  user:string
+} 
+export const userRegister = asyncHandler(async (req:Request<{},UserRegisterResBodyType,UserRegisterReqBodyType>,res:Response<UserRegisterResBodyType>) => {
   const user = await userRegisterService(req.body);
 
   return res.status(201).json({
     success: true,
     message: "User register successfully",
-    user:user._id
+    user:user._id.toString()
   });
 });
 
 // admin register
-export const adminRegister = asyncHandler(async (req, res) => {
+
+interface AdminRegisterReqBodyType{
+   firstName:string,
+      lastName:string,
+      email:string,
+      password:string,
+      phoneNumber:string,
+      address:IAddress[],
+    
+}
+
+interface AdminRegisterResBodyType{
+  success:boolean,
+  message:string,
+  user:string
+} 
+export const adminRegister = asyncHandler(async (req:Request<{},AdminRegisterResBodyType,AdminRegisterReqBodyType> ,res:Response<AdminRegisterResBodyType>) => {
   const user = await adminRegisterService(req.body);
 
   return res.status(201).json({
     success: true,
     message: "Admin register successfully",
-    user:user._id
+    user:user._id.toString()
   });
 });
 
 // user login
-export const userLogin = asyncHandler(async (req, res) => {
+
+interface UserLoginReqType{
+  email:string,
+  password:string
+}
+
+interface UserLoginResType{
+  success:boolean,
+  message:string,
+  accessToken:string,
+  user:string
+}
+export const userLogin = asyncHandler(async (req:Request<{},UserLoginResType,UserLoginReqType>, res:Response<UserLoginResType>) => {
   const { email, password } = req.body;
 
   const user = await userLoginService(email, password);
@@ -48,11 +92,11 @@ export const userLogin = asyncHandler(async (req, res) => {
   const session = new Session({
     user: user._id,
     ip: req.ip,
-    userAgent: req.headers["user-agent"],
+    userAgent: req.headers["user-agent"] || "",
   });
 
   const refreshToken = jwt.sign(
-    { id: user._id, role: user.role, sessionId: session._id },
+    { id: user._id.toString(), role: user.role, sessionId: session._id.toString()},
     config.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" },
   );
@@ -72,7 +116,7 @@ export const userLogin = asyncHandler(async (req, res) => {
   });
 
   const accessToken = jwt.sign(
-    { id: user._id, role: user.role, sessionId: session._id },
+    { id: user._id.toString(), role: user.role, sessionId: session._id.toString()},
     config.JWT_SECRET,
     { expiresIn: "15m" },
   );
@@ -81,12 +125,24 @@ export const userLogin = asyncHandler(async (req, res) => {
     success: true,
     message: "User login successfully",
     accessToken: accessToken,
-    user:user._id
+    user:user._id.toString()
   });
 });
 
 // admin login
-export const adminLogin = asyncHandler(async (req, res) => {
+
+interface AdminLoginReqType{
+  email:string,
+  password:string
+}
+
+interface AdminLoginResType{
+  success:boolean,
+  message:string,
+  accessToken:string,
+  user:string
+}
+export const adminLogin = asyncHandler(async (req:Request<{},AdminLoginResType,AdminLoginReqType>, res:Response<AdminLoginResType>) => {
   const { email, password } = req.body;
 
   const admin = await adminLoginService(email, password);
@@ -94,11 +150,11 @@ export const adminLogin = asyncHandler(async (req, res) => {
   const session = new Session({
     user: admin._id,
     ip: req.ip,
-    userAgent: req.headers["user-agent"],
+    userAgent: req.headers["user-agent"] || "",
   });
 
   const refreshToken = jwt.sign(
-    { id: admin._id, role: admin.role, sessionId: session._id },
+    { id: admin._id.toString(), role: admin.role, sessionId: session._id.toString() },
     config.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" },
   );
@@ -118,7 +174,7 @@ export const adminLogin = asyncHandler(async (req, res) => {
   });
 
   const accessToken = jwt.sign(
-    { id: admin._id, role: admin.role, sessionId: session._id },
+    { id: admin._id.toString(), role: admin.role, sessionId: session._id.toString() },
     config.JWT_SECRET,
     { expiresIn: "15m" },
   );
@@ -127,24 +183,37 @@ export const adminLogin = asyncHandler(async (req, res) => {
     success: true,
     message: "Admin login successfully",
     accessToken: accessToken,
-    user:admin._id
+    user:admin._id.toString()
   });
 });
 
 // refresh token
-export const refreshToken = asyncHandler(async (req, res) => {
+
+interface RefreshTokenResType{
+  success:boolean,
+  message:string,
+  accessToken:string,
+  role:string
+}
+
+interface CustomReqType extends Request{
+  cookies:Request["cookies"] & {
+    refreshToken?:string
+  }
+}
+export const refreshToken = asyncHandler(async (req:CustomReqType, res:Response<RefreshTokenResType>) => {
   const refreshToken = req.cookies?.refreshToken;
 
   const token = await refreshTokenService(refreshToken);
 
   const accessToken = jwt.sign(
-    { id: token.userId, role: token.userRole, sessionId: token.session._id },
+    { id: token.userId.toString(), role: token.userRole, sessionId: token.session._id.toString() },
     config.JWT_SECRET,
     { expiresIn: "15m" },
   );
 
   const newRefreshToken = jwt.sign(
-    { id: token.userId, role: token.userRole, sessionId: token.session._id },
+    { id: token.userId.toString(), role: token.userRole, sessionId: token.session._id.toString() },
     config.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" },
   );
@@ -174,7 +243,14 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
 //get me 
 
-export const userGetMe = asyncHandler(async(req,res)=>{
+interface AuthReqType extends Request{
+  user:string
+}
+interface UserGetMeResType{
+  success:boolean,
+  user:unknown
+}
+export const userGetMe = asyncHandler(async(req:AuthReqType,res:Response<UserGetMeResType>)=>{
     const user = await userGetMeService(req.user)
 
     return res.status(200).json({
@@ -183,7 +259,7 @@ export const userGetMe = asyncHandler(async(req,res)=>{
     })
 })
 
-export const adminGetMe = asyncHandler(async(req,res)=>{
+export const adminGetMe = asyncHandler(async(req:Request,res:Response)=>{
     const admin = await adminGetMeService(req.user)
 
     return res.status(200).json({
@@ -194,7 +270,7 @@ export const adminGetMe = asyncHandler(async(req,res)=>{
 
 // logout 
 
-export const logout = asyncHandler(async(req,res)=>{
+export const logout = asyncHandler(async(req:Request,res:Response)=>{
   const refreshToken = req.cookies?.refreshToken
   const accessToken = req.headers.authorization?.split(" ")[1]
 
@@ -213,7 +289,7 @@ export const logout = asyncHandler(async(req,res)=>{
 }) 
 
 
-export const forgetPassword = asyncHandler(async(req,res)=>{
+export const forgetPassword = asyncHandler(async(req:Request,res:Response)=>{
   const {email} = req.body
   const {user,otp} = await forgotPasswordService({email})
   
@@ -229,7 +305,7 @@ export const forgetPassword = asyncHandler(async(req,res)=>{
 })
 
 
-export const confirmOTP = asyncHandler(async(req,res)=>{
+export const confirmOTP = asyncHandler(async(req:Request,res:Response)=>{
   const {otp} = req.body
 
   const check = await confirmOTPService({otp})
