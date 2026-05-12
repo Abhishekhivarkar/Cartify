@@ -1,6 +1,8 @@
 import mongoose from "mongoose"
+import {ICoupon} from "../types/coupon.types.js"
 
-const couponSchema = new mongoose.Schema({
+
+const couponSchema = new mongoose.Schema<ICoupon> ({
     code:{
         type:String,
         required:[true,"Coupon code is required"],
@@ -20,4 +22,7 @@ const couponSchema = new mongoose.Schema({
     }
 },{timestamps:true})
 
-export default mongoose.model("Coupon",couponSchema)
+
+const CouponModel:Model<ICoupon> = mongoose.model<ICoupon>("Coupon",couponSchema)
+
+export default CouponModel

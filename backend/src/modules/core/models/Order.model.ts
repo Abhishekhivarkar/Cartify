@@ -1,14 +1,17 @@
-const orderSchema = new mongoose.Schema({
+import {IOrder,IAddress,IItems} from "../types/order.types.js"
 
+import mongoose from "mongoose"
+import type {Model} from "mongoose"
+const orderSchema = new mongoose.Schema<IOrder>({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Types.ObjectId,
     ref: "User"
   },
 
   items: [
     {
       variant: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Types.ObjectId,
         ref: "ProductVariant"
       },
 
@@ -41,4 +44,6 @@ const orderSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-export default mongoose.model("Order", orderSchema);
+const OrderModel:Model<IOrder> = mongoose.model<IOrder>("Order",orderSchema)
+
+export default OrderModel

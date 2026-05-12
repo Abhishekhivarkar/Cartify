@@ -1,6 +1,13 @@
 import mongoose from "mongoose"
+import type {Model} from "mongoose"
 import slugify from "slugify"
-const productSchema = new mongoose.Schema({
+
+export interface IProduct{
+ name:string,
+ slug:string
+}
+
+const productSchema = new mongoose.Schema<IProduct>({
     name:{
         type:String,
         required:[true,"Product name is required"]

@@ -7,6 +7,7 @@ import UserModel from "../modules/auth/models/User.model.js"
 import BlackListTokenModel from "../modules/auth/models/BlackListToken.model.js"
 import { AppError } from "../utils/appError.util.js"
  
+import {JwtPayloadType} from "../modules/auth/types"
 export const authMiddleware =async (req,res,next) =>{
  try{
   const token = req.headers.authorization?.split(" ")[1]

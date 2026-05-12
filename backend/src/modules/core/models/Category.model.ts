@@ -1,11 +1,15 @@
 import mongoose from "mongoose"
 import slugify from "slugify"
+import {Model} from "mongoose"
+import {IAttributes,ICategory} from "../types/category.types.js"
 
-const categorySchema = new mongoose.Schema({
+
+const categorySchema = new mongoose.Schema<ICategory>({
     name:{
         type:String,
         required:[true,"Category name is required"],
-        unique:true
+        unique:true,
+        trim:true
     },
 
     slug:{
@@ -23,11 +27,12 @@ const categorySchema = new mongoose.Schema({
 },{timestamps:true})
 
 
-categorySchema.pre("save",function(){
-
+categorySchema.pre<ICategory> ("save",function(){
     if(this.isModified("name")){
         this.slug = slugify(this.name,{lower:true})
     }
 })
 
-export default mongoose.model("Category",categorySchema)
+const CategoryModel:Model<ICategory> = mongoose.model<ICategory>("Category",categorySchema)
+
+export default CategoryModel
